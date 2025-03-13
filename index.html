@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>X86 Paging Tutorial</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --accent-1: #6ab0f3;
+            --accent-2: #4a8bc2;
+        }
+
+        body {
+            font-family: 'Consolas', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            border-right: 2px solid var(--accent-2);
+            padding-right: 20px;
+        }
+
+        .simulation-area {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .memory-block {
+            background: #3a3a3a;
+            border: 1px solid var(--accent-1);
+            padding: 10px;
+            margin: 10px;
+            cursor: move;
+            user-select: none;
+            position: absolute;
+            width: 200px;
+        }
+
+        .register {
+            background: #4a4a4a;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .address-translation {
+            border: 1px solid var(--accent-2);
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .entry {
+            cursor: pointer;
+            padding: 3px;
+            margin: 2px;
+            background: #505050;
+        }
+
+        .pagina {
+            border-color: #8bc34a;
+        }
+
+        .arrow {
+            position: absolute;
+            stroke: #ff5722;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Controles de Paginación</h2>
+            <button onclick="setCR3()">Establecer CR3</button>
+            <button onclick="createPageTable()">Nueva Page Table</button>
+            <button onclick="createPage()">Nueva Página Física</button>
+            
+            <div class="address-translation">
+                <h3>Traducción de Direcciones</h3>
+                <div id="address-steps"></div>
+            </div>
+        </div>
+
+        <div class="simulation-area" id="simulation">
+            <div class="register" id="cr3-display">CR3: 0x00000000</div>
+            <svg id="arrows" width="100%" height="100%"></svg>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script>
+        let currentCR3 = 0x00000000;
+        let pageTables = new Map();
+        let pages = new Map();
+
+        // Configuración original de arrastre
+        interact('.memory-block').draggable({
+            inertia: false,
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: 'parent'
+                })
+            ],
+            listeners: {
+                move: dragMoveListener
+            }
+        });
+
+        function dragMoveListener(event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            
+            updateArrows();
+        }
+
+        function setCR3() {
+            const newCR3 = prompt("Nuevo valor CR3 (hex):", "0x00000000");
+            currentCR3 = parseInt(newCR3, 16);
+            document.getElementById('cr3-display').textContent = `CR3: 0x${currentCR3.toString(16).padStart(8, '0')}`;
+            createPageDirectory();
+        }
+
+        function createPageDirectory() {
+            const existing = document.querySelector('.page-directory');
+            if (existing) existing.remove();
+
+            const dir = document.createElement('div');
+            dir.className = 'memory-block';
+            dir.classList.add('page-directory');
+            dir.innerHTML = `<h4>Page Directory</h4>`;
+            
+            for (let i = 0; i < 4; i++) {
+                const entry = document.createElement('div');
+                entry.className = 'entry';
+                entry.textContent = `PDE ${i}: 0x00000000`;
+                entry.onclick = () => editPDE(i, entry);
+                dir.appendChild(entry);
+            }
+            
+            simulation.appendChild(dir);
+            positionElement(dir, 50, 100);
+        }
+
+        function createPageTable(address = 0x1000) {
+            const table = document.createElement('div');
+            table.className = 'memory-block';
+            table.innerHTML = `<h4>Page Table 0x${address.toString(16)}</h4>`;
+            
+            for (let i = 0; i < 4; i++) {
+                const entry = document.createElement('div');
+                entry.className = 'entry';
+                entry.textContent = `PTE ${i}: 0x00000000`;
+                entry.onclick = () => editPTE(address, i, entry);
+                table.appendChild(entry);
+            }
+            
+            simulation.appendChild(table);
+            pageTables.set(address, table);
+            positionElement(table, 300, 200);
+            return table;
+        }
+
+        function createPage(address = 0x2000) {
+            const page = document.createElement('div');
+            page.className = 'memory-block pagina';
+            page.textContent = `Página 0x${address.toString(16)}`;
+            simulation.appendChild(page);
+            pages.set(address, page);
+            positionElement(page, 500, 300);
+            return page;
+        }
+
+        function editPDE(index, element) {
+            const newVal = prompt(`Ingrese dirección de Page Table para PDE ${index}:`, "0x1000");
+            const address = parseInt(newVal, 16);
+            element.textContent = `PDE ${index}: 0x${address.toString(16).padStart(8, '0')}`;
+            if (!pageTables.has(address)) createPageTable(address);
+            updateArrows();
+        }
+
+        function editPTE(tableAddress, index, element) {
+            const newVal = prompt(`Ingrese dirección física para PTE ${index}:`, "0x2000");
+            const address = parseInt(newVal, 16);
+            element.textContent = `PTE ${index}: 0x${address.toString(16).padStart(8, '0')}`;
+            if (!pages.has(address)) createPage(address);
+            updateArrows();
+        }
+
+        function positionElement(element, x, y) {
+            element.style.left = `${x}px`;
+            element.style.top = `${y}px`;
+        }
+
+        function updateArrows() {
+            const svg = document.getElementById('arrows');
+            svg.innerHTML = '';
+            
+            // Dibujar flechas CR3 -> Page Directory
+            const cr3 = document.getElementById('cr3-display');
+            const dir = document.querySelector('.page-directory');
+            drawArrow(cr3, dir, 'CR3');
+
+            // Dibujar flechas PDE -> Page Tables
+            document.querySelectorAll('.page-directory .entry').forEach(entry => {
+                const address = parseInt(entry.textContent.split('0x')[1], 16);
+                if (pageTables.has(address)) {
+                    drawArrow(entry, pageTables.get(address), 'PDE');
+                }
+            });
+
+            // Dibujar flechas PTE -> Páginas
+            pageTables.forEach((table, address) => {
+                table.querySelectorAll('.entry').forEach(entry => {
+                    const pageAddress = parseInt(entry.textContent.split('0x')[1], 16);
+                    if (pages.has(pageAddress)) {
+                        drawArrow(entry, pages.get(pageAddress), 'PTE');
+                    }
+                });
+            });
+        }
+
+        function drawArrow(from, to, type) {
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+            const svg = document.getElementById('arrows');
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', fromRect.left + fromRect.width/2 - svg.getBoundingClientRect().left);
+            line.setAttribute('y1', fromRect.top + fromRect.height - svg.getBoundingClientRect().top);
+            line.setAttribute('x2', toRect.left + toRect.width/2 - svg.getBoundingClientRect().left);
+            line.setAttribute('y2', toRect.top - svg.getBoundingClientRect().top);
+            line.setAttribute('class', 'arrow');
+            line.setAttribute('stroke', type === 'CR3' ? '#6ab0f3' : type === 'PDE' ? '#ff5722' : '#8bc34a');
+            
+            svg.appendChild(line);
+        }
+
+        // Inicialización
+        createPageDirectory();
+    </script>
+</body>
+</html>
