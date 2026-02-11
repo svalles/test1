@@ -1,332 +1,37 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <title>Portal de Paginación Intel x86 V2</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    /* Estilos generales. */
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f4f4;
-      color: #333;
-    }
-    header {
-      background: #282c34;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    nav ul {
-      list-style: none;
-      padding: 0;
-      margin-top: 0.5rem;
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-    nav ul li a {
-      color: #61dafb;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    main {
-      max-width: 960px;
-      margin: 2rem auto;
-      padding: 1rem;
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    section {
-      margin-bottom: 2rem;
-    }
-    section h2 {
-      border-bottom: 2px solid #282c34;
-      padding-bottom: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    /* Área de simulación y controles */
-    #controls {
-      margin-bottom: 1rem;
-    }
-    #controls > div {
-      margin-bottom: 0.5rem;
-    }
-    #controls label {
-      font-weight: bold;
-    }
-    #controls input[type="text"] {
-      padding: 0.2rem;
-      margin-right: 0.5rem;
-    }
-    #canvas {
-      position: relative;
-      width: 100%;
-      height: 500px;
-      border: 2px dashed #ccc;
-      background: #fafafa;
-      overflow: auto;
-    }
-    /* Contenedores internos */
-    #cr3-display, #page-directory-container, #page-tables-container, #physical-mem {
-      margin: 10px;
-      padding: 5px;
-      background: #fff;
-      border: 1px solid #ddd;
-      position: relative;
-    }
-    #page-directory-container, #page-tables-container, #physical-mem {
-      min-height: 120px;
-    }
-    #page-directory-container h3,
-    #page-tables-container h3,
-    #physical-mem h3 {
-      margin: 0 0 5px 0;
-      font-size: 1.1rem;
-      background: #282c34;
-      color: #fff;
-      padding: 3px;
-      text-align: center;
-    }
-    /* Elementos arrastrables */
-    .draggable {
-      background: #61dafb;
-      color: #fff;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-      cursor: move;
-      user-select: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      transition: background 0.2s;
-    }
-    .draggable:hover {
-      background: #52b0e8;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hobby Recommendations</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <header>
-    <h1>Portal de Paginación Intel x86</h1>
-    <nav>
-      <ul>
-        <li><a href="#tutorial">Tutorial</a></li>
-        <li><a href="#simulador">Simulador</a></li>
-      </ul>
-    </nav>
-  </header>
-  
-  <main>
-    <!-- Sección de Tutorial -->
-    <section id="tutorial">
-      <h2>Tutorial</h2>
-      <p>Bienvenido al portal para aprender el sistema de paginación Intel x86. En este simulador podrás:</p>
-      <ul>
-        <li>Cargar un valor de CR3.</li>
-        <li>Cargar al menos 4 entradas del Page Directory (PDE).</li>
-        <li>Cargar al menos 4 entradas para cada Page Table (PTE).</li>
-        <li>Ver que las entradas de las Page Table apuntan a bloques movibles denominados "Página".</li>
-        <li>Observar que las entradas del Page Directory enlazan con sus correspondientes Page Table.</li>
-      </ul>
-      <p>Utiliza los controles y realiza doble click sobre una entrada del Page Directory para cargar su Page Table, o usa el botón general.</p>
-    </section>
-    
-    <!-- Sección de Simulador Interactivo -->
-    <section id="simulador">
-      <h2>Simulador Interactivo</h2>
-      <div id="controls">
-        <div id="cr3-control">
-          <label for="cr3-input">Valor CR3:</label>
-          <input type="text" id="cr3-input" placeholder="Ingrese valor CR3">
-          <button id="load-cr3">Cargar CR3</button>
-        </div>
-        <div id="pd-control">
-          <button id="load-pd">Cargar Entradas del Page Directory</button>
-        </div>
-        <div id="pt-control">
-          <button id="load-pt">Cargar Entradas de las Page Table (para todos los PDE)</button>
-        </div>
+  <div class="container">
+    <h1>Hobby Recommendations V1</h1>
+
+    <label for="category-select">Choose a hobby category:</label>
+    <select id="category-select" class="dropdown">
+      <option value="general">General</option>
+      <option value="sports_and_outdoors">Sports & Outdoors</option>
+      <option value="education">Education</option>
+      <option value="collection">Collection</option>
+      <option value="competition">Competition</option>
+      <option value="observation">Observation</option>
+    </select>
+
+    <div id="hobby-container" class="card">
+      <p id="hobby">Click the button to get a hobby recommendation!</p>
+      <div id="link-container">
+        <!-- El enlace al hobby aparecerá aquí -->
       </div>
-      <div id="canvas">
-        <div id="cr3-display"></div>
-        <div id="page-directory-container">
-          <h3>Page Directory</h3>
-          <!-- Se agregarán las entradas PDE aquí -->
-        </div>
-        <div id="page-tables-container">
-          <h3>Page Tables</h3>
-          <!-- Se agregarán las Page Tables correspondientes a cada PDE -->
-        </div>
-        <div id="physical-mem">
-          <h3>Memoria Física</h3>
-          <!-- Se agregarán los bloques "Página" -->
-        </div>
-      </div>
-    </section>
-  </main>
-  
-  <footer>
-    <p>&copy; 2025 Portal de Paginación Intel x86</p>
-  </footer>
-  
-  <script>
-    // --- Funcionalidad Drag & Drop ---
-    let activeElement = null;
-    let offsetX = 0, offsetY = 0;
+    </div>
 
-    function dragStart(e) {
-      activeElement = this;
-      const rect = activeElement.getBoundingClientRect();
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
-      activeElement.style.zIndex = 1000;
-    }
-
-    function drag(e) {
-      if (!activeElement) return;
-      e.preventDefault();
-      const x = e.clientX - offsetX;
-      const y = e.clientY - offsetY;
-      activeElement.style.left = x + 'px';
-      activeElement.style.top = y + 'px';
-    }
-
-    function dragEnd(e) {
-      if (activeElement) {
-        activeElement.style.zIndex = "";
-        activeElement = null;
-      }
-    }
-
-    function makeDraggable(elem) {
-      // Se garantiza posicionamiento absoluto para arrastre
-      elem.style.position = 'absolute';
-      elem.addEventListener('mousedown', dragStart);
-    }
-
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', dragEnd);
-
-    // --- Funcionalidad de carga de CR3, Page Directory y Page Tables ---
-    document.addEventListener('DOMContentLoaded', function(){
-      // CR3
-      const cr3Input = document.getElementById('cr3-input');
-      const loadCr3Btn = document.getElementById('load-cr3');
-      const cr3Display = document.getElementById('cr3-display');
-
-      loadCr3Btn.addEventListener('click', function(){
-        const value = cr3Input.value.trim();
-        if(value === ''){
-          alert('Por favor ingrese un valor para CR3.');
-          return;
-        }
-        cr3Display.innerText = 'CR3: ' + value;
-        // Posicion inicial para el display de CR3
-        cr3Display.style.left = '10px';
-        cr3Display.style.top = '10px';
-        cr3Display.style.position = 'absolute';
-      });
-
-      // Page Directory
-      const loadPdBtn = document.getElementById('load-pd');
-      const pdContainer = document.getElementById('page-directory-container');
-      loadPdBtn.addEventListener('click', function(){
-        // Reiniciamos el contenedor
-        pdContainer.innerHTML = '<h3>Page Directory</h3>';
-        for(let i = 1; i <= 4; i++){
-          const pde = document.createElement('div');
-          pde.classList.add('draggable');
-          pde.innerText = 'PDE ' + i;
-          pde.setAttribute('data-pde', i);
-          // Al hacer doble click se carga la Page Table correspondiente
-          pde.addEventListener('dblclick', function(){
-            loadPageTableForPDE(i);
-          });
-          pdContainer.appendChild(pde);
-          makeDraggable(pde);
-          // Posición inicial para diferenciar cada PDE
-          pde.style.left = (30 * i) + 'px';
-          pde.style.top = '40px';
-        }
-      });
-
-      // Page Tables
-      const ptContainer = document.getElementById('page-tables-container');
-      const loadPtBtn = document.getElementById('load-pt');
-      loadPtBtn.addEventListener('click', function(){
-        // Para cada PDE cargada, crea (o recarga) su Page Table
-        const pdes = pdContainer.querySelectorAll('.draggable');
-        pdes.forEach(function(pdeElem){
-          const pdeNum = pdeElem.getAttribute('data-pde');
-          loadPageTableForPDE(pdeNum);
-        });
-      });
-
-      const physMem = document.getElementById('physical-mem');
-
-      function loadPageTableForPDE(pdeNum) {
-        // Verifica si ya existe la Page Table para este PDE
-        let ptDiv = document.getElementById('pt-' + pdeNum);
-        if (!ptDiv) {
-          ptDiv = document.createElement('div');
-          ptDiv.id = 'pt-' + pdeNum;
-          ptDiv.style.border = '1px solid #ccc';
-          ptDiv.style.margin = '10px';
-          ptDiv.style.padding = '5px';
-          ptDiv.innerHTML = '<strong>Page Table para PDE ' + pdeNum + '</strong>';
-          ptDiv.style.position = 'absolute';
-          ptDiv.style.left = (200 + 150 * pdeNum) + 'px';
-          ptDiv.style.top = '100px';
-          ptDiv.style.width = '140px';
-          ptDiv.style.height = '180px';
-          ptDiv.style.backgroundColor = '#eee';
-          ptContainer.appendChild(ptDiv);
-        }
-        // Elimina entradas anteriores (excepto el encabezado)
-        Array.from(ptDiv.querySelectorAll('.pte')).forEach(function(entry){ entry.remove(); });
-
-        // Crea 4 entradas para la Page Table
-        for (let j = 1; j <= 4; j++) {
-          const pte = document.createElement('div');
-          pte.classList.add('draggable', 'pte');
-          pte.innerText = 'PTE ' + pdeNum + '-' + j;
-          pte.style.position = 'absolute';
-          pte.style.left = '10px';
-          pte.style.top = (30 + 30 * j) + 'px';
-          pte.setAttribute('data-pte', pdeNum + '-' + j);
-          ptDiv.appendChild(pte);
-          makeDraggable(pte);
-
-          // Para cada PTE se crea (o se asegura) que exista un bloque "Página" en Memoria Física
-          const paginaId = 'pagina-' + pdeNum + '-' + j;
-          if (!document.getElementById(paginaId)) {
-            const pagina = document.createElement('div');
-            pagina.classList.add('draggable');
-            pagina.innerText = 'Página ' + pdeNum + '-' + j;
-            pagina.style.position = 'absolute';
-            // Posición inicial aleatoria dentro del contenedor de Memoria Física
-            pagina.style.left = Math.random() * 100 + 'px';
-            pagina.style.top = Math.random() * 50 + 'px';
-            pagina.id = paginaId;
-            physMem.appendChild(pagina);
-            makeDraggable(pagina);
-          }
-          // Al hacer click en un PTE se resalta la "Página" asociada
-          pte.addEventListener('click', function(){
-            const allPaginas = document.querySelectorAll('[id^="pagina-"]');
-            allPaginas.forEach(function(p){ p.style.border = 'none'; });
-            const targetPagina = document.getElementById(paginaId);
-            if (targetPagina) {
-              targetPagina.style.border = '2px solid red';
-            }
-          });
-        }
-      }
-    });
-  </script>
+    <button id="suggest-btn" class="btn" onclick="getHobby()">Suggest a Hobby!</button>
+  </div>
+  <script src="index.js"></script>
 </body>
+
 </html>
