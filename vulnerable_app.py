@@ -8,7 +8,7 @@ from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# Plantilla HTML vulnerable - NO sanitiza el input del usuario
+# Plantilla HTML vulnerable - NO sanitiza el input del susuario
 VULNERABLE_TEMPLATE = """
 <!DOCTYPE html>
 <html>
